@@ -5,6 +5,8 @@ import {
   View,
   TouchableOpacity,
   Switch,
+  Button,
+  Alert,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -13,6 +15,7 @@ import Card_changeColor from './Card_changeColor';
 import axios from 'axios';
 import {ScrollView} from 'react-native-gesture-handler';
 import GetLocation from 'react-native-get-location';
+import LocationEnabler from 'react-native-location-enabler';
 
 const Homedriver = ({navigation}) => {
   useEffect(() => {
@@ -62,15 +65,30 @@ const Homedriver = ({navigation}) => {
       .then(res => setPointdown(res.data));
   }
 
+  const {
+    PRIORITIES: {HIGH_ACCURACY},
+    useLocationSettings,
+  } = LocationEnabler;
+  let state_gps = 0; //0 = on,1 = off
+  const [enabled, requestResolution] = useLocationSettings(
+    {
+      priority: HIGH_ACCURACY, // default BALANCED_POWER_ACCURACY
+      alwaysShow: true, // default false
+      needBle: true, // default false
+    },
+    false /* optional: default undefined */,
+  );
+
   useEffect(() => {
     const interval = setInterval(() => {
       if (isEnabled == true) {
         get_location();
       } else {
         settext_location('หยุดการเดินทาง');
+        state_gps = 0;
       }
       setSeconds(seconds => seconds + 1);
-    }, 2000);
+    }, 1000);
     return () => clearInterval(interval);
   }, [isEnabled]);
 
@@ -79,17 +97,32 @@ const Homedriver = ({navigation}) => {
       enableHighAccuracy: true,
     })
       .then(location => {
+        console.log(location);
+        state_gps = 0;
         send_location(location);
       })
       .catch(error => {
-        const {code, message} = error;
-        console.warn(code, message);
+        if (state_gps == 1) {
+        } else {
+          Alert.alert(
+            'เกิดข้อผิดผลาด',
+            'กดปุ่ม OK เพื่อเปิด GPS ใหม่อีกครั้ง',
+            [
+              {
+                text: 'Cancel',
+                onPress: () => (state_gps = 0),
+                style: 'cancel',
+              },
+              {text: 'OK', onPress: () => requestResolution()},
+            ],
+          );
+        }
+        state_gps = 1;
       });
   }
 
   async function send_location(location) {
     let id = await AsyncStorage.getItem('@dataloginId');
-    console.log(id);
     settext_location('เริ่มเดินทาง');
     axios
       .get(
@@ -109,7 +142,7 @@ const Homedriver = ({navigation}) => {
 
       <View style={styles.btnNormal}>
         <View style={{flexDirection: 'row'}}>
-          <Text style={{marginRight:3,marginTop:2}}>{text_location}</Text>
+          <Text style={{marginRight: 3, marginTop: 2}}>{text_location}</Text>
           <Switch
             trackColor={{false: '#767577', true: '#81b0ff'}}
             thumbColor={isEnabled ? '#f5dd4b' : '#f4f3f4'}
