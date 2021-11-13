@@ -23,6 +23,7 @@ const Homedriver = ({navigation}) => {
   }, []);
 
   async function checkAsyncStorage() {
+    //เช็คว่ามีข้อมูล login ไว้ไหม ถ้ามีก็เข้าหน้าหลัก ถ้าไม่มีก็จะไป login
     try {
       const email = await AsyncStorage.getItem('@datalogin');
       if (email === undefined || email === '' || email === null) {
@@ -69,7 +70,6 @@ const Homedriver = ({navigation}) => {
     PRIORITIES: {HIGH_ACCURACY},
     useLocationSettings,
   } = LocationEnabler;
-  let state_gps = 0; //0 = on,1 = off
   const [enabled, requestResolution] = useLocationSettings(
     {
       priority: HIGH_ACCURACY, // default BALANCED_POWER_ACCURACY
@@ -78,7 +78,9 @@ const Homedriver = ({navigation}) => {
     },
     false /* optional: default undefined */,
   );
+  let state_gps = 0; //0 = on,1 = off
 
+  //ดูสถานะปุ่ม ว่าเปิดหรือปิด 
   useEffect(() => {
     const interval = setInterval(() => {
       if (isEnabled == true) {
@@ -97,7 +99,6 @@ const Homedriver = ({navigation}) => {
       enableHighAccuracy: true,
     })
       .then(location => {
-        console.log(location);
         state_gps = 0;
         send_location(location);
       })
@@ -137,12 +138,10 @@ const Homedriver = ({navigation}) => {
   }
 
   return (
-    <View style={{flex: 1, backgroundColor: '#FFFFFF', alignItems: 'center'}}>
-      <View style={{marginTop: 5}}></View>
-
+    <View style={styles.container}>
       <View style={styles.btnNormal}>
         <View style={{flexDirection: 'row'}}>
-          <Text style={{marginRight: 3, marginTop: 2}}>{text_location}</Text>
+          <Text style={styles.textBtn}>{text_location}</Text>
           <Switch
             trackColor={{false: '#767577', true: '#81b0ff'}}
             thumbColor={isEnabled ? '#f5dd4b' : '#f4f3f4'}
@@ -152,27 +151,41 @@ const Homedriver = ({navigation}) => {
           />
         </View>
       </View>
-      <Text style={{color: '#140000', fontSize: 21, margin: 10}}>
-        จุดรับส่งผู้โดยสาร
-      </Text>
+
+      <View style={styles.viewBox}>
+        <Text style={styles.textBox}>จุดรับส่งผู้โดยสาร</Text>
+      </View>
+
       <ScrollView>
         {Pointup.map(item => {
           return (
             <TouchableOpacity onPress={() => alert(JSON.stringify(item))}>
               <Card key={item.id}>
-                <View>
-                  <Text style={{fontSize: 20, color: '#140000'}}>
-                    {' '}
-                    จุดรับผู้โดยสาร : {item.point}
-                  </Text>
-                  <Text style={{fontSize: 20, color: '#140000'}}>
-                    {' '}
-                    จำนวน : {item.amount_all} คน
-                  </Text>
-                  <Text style={{fontSize: 20, color: '#140000'}}>
-                    {' '}
-                    เลขตั๋ว : {item.id}
-                  </Text>
+                <View style={{flexDirection: 'row'}}>
+                  <View style={{flex: 1}}>
+                    <Text style={styles.textDefault}>จุดรับผู้โดยสาร :</Text>
+                  </View>
+                  <View style={{flex: 1}}>
+                    <Text style={styles.textDefault}>{item.point}</Text>
+                  </View>
+                </View>
+
+                <View style={{flexDirection: 'row'}}>
+                  <View style={{flex: 1}}>
+                    <Text style={styles.textDefault}>จำนวน :</Text>
+                  </View>
+                  <View style={{flex: 1}}>
+                    <Text style={styles.textDefault}>{item.amount_all}</Text>
+                  </View>
+                </View>
+
+                <View style={{flexDirection: 'row'}}>
+                  <View style={{flex: 1}}>
+                    <Text style={styles.textDefault}>เลขตั๋ว :</Text>
+                  </View>
+                  <View style={{flex: 1}}>
+                    <Text style={styles.textDefault}>{item.id}</Text>
+                  </View>
                 </View>
               </Card>
             </TouchableOpacity>
@@ -182,15 +195,22 @@ const Homedriver = ({navigation}) => {
           return (
             <TouchableOpacity onPress={() => alert(JSON.stringify(item))}>
               <Card_changeColor key={item.point}>
-                <View>
-                  <Text style={{fontSize: 20, color: '#140000'}}>
-                    {' '}
-                    จุดส่งผู้โดยสาร : {item.point}
-                  </Text>
-                  <Text style={{fontSize: 20, color: '#140000'}}>
-                    {' '}
-                    จำนวน : {item.amount_all} คน
-                  </Text>
+                <View style={{flexDirection: 'row'}}>
+                  <View style={{flex: 1}}>
+                    <Text style={styles.textDefault}>จุดส่งผู้โดยสาร :</Text>
+                  </View>
+                  <View style={{flex: 1}}>
+                    <Text style={styles.textDefault}>{item.point}</Text>
+                  </View>
+                </View>
+
+                <View style={{flexDirection: 'row'}}>
+                  <View style={{flex: 1}}>
+                    <Text style={styles.textDefault}>จำนวน :</Text>
+                  </View>
+                  <View style={{flex: 1}}>
+                    <Text style={styles.textDefault}>{item.amount_all}</Text>
+                  </View>
                 </View>
               </Card_changeColor>
             </TouchableOpacity>
@@ -204,29 +224,35 @@ const Homedriver = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
   },
   btnNormal: {
     backgroundColor: '#b0e0e6',
     borderRadius: 21,
     height: 70,
     width: 250,
+    marginTop: 10,
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
   },
-  btnPress: {
-    backgroundColor: '#7CBE65',
-    borderRadius: 21,
-    height: 70,
-    width: 250,
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
+  textBtn: {
+    marginRight: 3,
+    marginTop: 2,
+    fontSize: 20,
   },
-  Card: {
-    backgroundColor: '#ACD3D3',
+  viewBox: {
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  textBox: {
+    color: '#140000',
+    fontSize: 21,
+    margin: 10,
+  },
+  textDefault: {
+    fontSize: 20,
+    color: '#140000',
   },
 });
 
