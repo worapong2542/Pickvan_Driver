@@ -43,6 +43,8 @@ const Homedriver = ({navigation}) => {
   const [seconds2, setSeconds2] = useState(0);
   const [isEnabled, setIsEnabled] = useState(false);
   const [text_location, settext_location] = useState('');
+  const [texttime, settexttime] = useState('');
+  const [textdate, settextdate] = useState('');
 
   useEffect(() => {
     get_data();
@@ -63,7 +65,12 @@ const Homedriver = ({navigation}) => {
       .then(res => setPointup(res.data));
     await axios
       .get('http://10.0.2.2:3001/driver/driver_getpoint_down/' + id)
-      .then(res => setPointdown(res.data));
+      .then(res => setvalue(res));
+  }
+  function setvalue(res){
+    setPointdown(res.data.point)
+    settextdate(res.data.route[0].date.substring(0, 10))
+    settexttime(res.data.route[0].time.substring(0, 5))
   }
 
   const {
@@ -153,10 +160,11 @@ const Homedriver = ({navigation}) => {
       </View>
 
       <View style={styles.viewBox}>
-        <Text style={styles.textBox}>จุดรับส่งผู้โดยสาร</Text>
+        <Text style={styles.textBox}>จุดรับส่งผู้โดยสาร </Text>
       </View>
 
       <ScrollView>
+      <Text style={styles.textTime}>วันที่ {textdate} เวลา {texttime}</Text>
         {Pointup.map(item => {
           return (
             <TouchableOpacity onPress={() => alert(JSON.stringify(item))}>
@@ -247,8 +255,13 @@ const styles = StyleSheet.create({
   },
   textBox: {
     color: '#140000',
-    fontSize: 21,
-    margin: 10,
+    fontSize: 20,
+    margin: 5,
+  },
+  textTime: {
+    color: '#140000',
+    fontSize: 18 ,
+    textAlign: 'center',
   },
   textDefault: {
     fontSize: 20,
